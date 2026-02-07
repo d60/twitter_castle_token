@@ -1,5 +1,5 @@
-from utils import arr_to_2dig_hex_string, n_digit_hex
-from xxtea_encrypt import xxtea_encrypt
+from .utils import arr_to_2dig_hex_string, n_digit_hex
+from .xxtea_encrypt import xxtea_encrypt
 
 
 def hex_to_int_arr(hex_str):

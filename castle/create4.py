@@ -1,4 +1,4 @@
-from utils import arr_to_2dig_hex_string, n_digit_hex, xor_stream
+from .utils import arr_to_2dig_hex_string, n_digit_hex, xor_stream
 
 
 def encode_time_hex(t):

@@ -1,4 +1,4 @@
-from utils import n_digit_hex
+from .utils import n_digit_hex
 
 
 def float_encode(exp_bits, mant_bits, x):

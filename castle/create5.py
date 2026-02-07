@@ -1,4 +1,4 @@
-from utils import n_digit_hex
+from .utils import n_digit_hex
 
 
 def encode_to_4dig_hex(n):

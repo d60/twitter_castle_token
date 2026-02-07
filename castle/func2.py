@@ -1,4 +1,4 @@
-from utils import n_digit_hex, xor_stream
+from .utils import n_digit_hex, xor_stream
 
 
 def rotate_string(s, n):

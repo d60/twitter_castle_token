@@ -1,7 +1,7 @@
 import base64
 import re
 
-from utils import n_digit_hex, xor_stream
+from .utils import n_digit_hex, xor_stream
 
 
 def hex_to_bin(hex_str):
