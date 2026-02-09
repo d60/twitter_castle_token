@@ -32,7 +32,7 @@ def bits_to_hex(bits):
     normalized_bits = list(map(bool, bits))
 
     body_hex = ''
-    chunk_size = 24  # JavaScript: t[4] = 24
+    chunk_size = 24
     for i in range(0, len(normalized_bits), chunk_size):
         chunk = normalized_bits[i : i + chunk_size]
 
@@ -44,30 +44,56 @@ def bits_to_hex(bits):
             num_bytes = 3
         else:
             num_bytes = math.ceil(chunk_len / 8)
-        body_hex += n_digit_hex(val, num_bytes*2)
+        body_hex += n_digit_hex(val, num_bytes * 2)
     return length_prefix + body_hex
 
 
-def index0(platform, time = None):
+def index0(platform, time=None):
     # window.navigator.platform
-    PLATFORMS = ['MacIntel', 'Win32', 'iPhone', 'Linux armv8l', 'iPad', 'Linux armv81', 'Linux aarch64', 'Linux x86_64', 'Linux armv7l']
+    PLATFORMS = [
+        'MacIntel',
+        'Win32',
+        'iPhone',
+        'Linux armv8l',
+        'iPad',
+        'Linux armv81',
+        'Linux aarch64',
+        'Linux x86_64',
+        'Linux armv7l',
+    ]
     index = index_of(PLATFORMS, platform)
     return encode_optional_index(0, index, platform, time)
 
 
-def index1(vendor, time = None):
+def index1(vendor, time=None):
     # window.navigator.vendor
     VENDORS = ['Google Inc.', 'Apple Computer, Inc.']
     index = index_of(VENDORS, vendor)
     return encode_optional_index(1, index, vendor, time)
 
 
-def index2(language, time = None):
+def index2(language, time=None):
     # window.navigator.language ||
     # window.navigator.userLanguage ||
     # window.navigator.browserLanguage ||
     # window.navigator.systemLanguage
-    LANGUAGES = ['US-US', 'ES-ES', 'FR-FR', 'BR-BR', 'GB-GB', 'DE-DE', 'RU-RU', 'us-us', 'gb-gb', 'CN-CN', 'ID-ID', 'US-US', 'IT-IT', 'MX-MX', 'PL-PL']
+    LANGUAGES = [
+        'US-US',
+        'ES-ES',
+        'FR-FR',
+        'BR-BR',
+        'GB-GB',
+        'DE-DE',
+        'RU-RU',
+        'us-us',
+        'gb-gb',
+        'CN-CN',
+        'ID-ID',
+        'US-US',
+        'IT-IT',
+        'MX-MX',
+        'PL-PL',
+    ]
     index = index_of(LANGUAGES, language)
     return encode_optional_index(2, index, language, time)
 
@@ -84,12 +110,13 @@ def index3(device_memory):
 def index4(width, avail_width, height, avail_height):
     # pack_15_16_bits(window.screen.width, window.screen.availWidth) +
     # pack_15_16_bits(window.screen.height, window.screen.availHeight)
-    encoded = (pack_15_16_bits(width, avail_width) +
-               pack_15_16_bits(height, avail_height))
+    encoded = pack_15_16_bits(width, avail_width) + pack_15_16_bits(
+        height, avail_height
+    )
     return encode_field(4, 7, encoded)
 
 
-def index5(color_depth = None, pixel_depth = None):
+def index5(color_depth=None, pixel_depth=None):
     # window.screen.colorDepth ||
     # window.screen.pixelDepth
     if not (color_depth or pixel_depth):
@@ -125,8 +152,9 @@ def index8(timezone_offset, summertime_offset_diff):
     #         Math.abs(e[2] - e[0])
     # })()
     # n_dig_hex(v1 // 15, 2) + n_dig_hex(v2 // 15, 2)
-    value = (n_digit_hex(timezone_offset // 15, 2) +
-             n_digit_hex(summertime_offset_diff // 15, 2))
+    value = n_digit_hex(timezone_offset // 15, 2) + n_digit_hex(
+        summertime_offset_diff // 15, 2
+    )
     return encode_field(8, 7, value)
 
 
@@ -182,9 +210,213 @@ def index12(user_agent, time):
         return length
 
     byte_length = calc_byte_length(len(xxtea_encrypted))
-    hex = n_digit_hex(byte_length, 2) + n_digit_hex(len(xxtea_encrypted), 2) + arr_to_2dig_hex_string(xxtea_encrypted)
+    hex = (
+        n_digit_hex(byte_length, 2)
+        + n_digit_hex(len(xxtea_encrypted), 2)
+        + arr_to_2dig_hex_string(xxtea_encrypted)
+    )
     return encode_field(12, 7, hex)
 
 
-def index13():
-    ...
+def index13(canvas_fingerprinting_hash, time):
+    """
+    8 digit hex like "fb98c853"
+    dataURL = (function () {
+        let canvas = window.document.createElement('canvas');
+        let context = canvas.getContext('2d');
+        return (function (e, t) {
+            var r = [];
+            return e.width = 500,
+                e.height = 100,
+                r[0] = 'Yxskaftbud, ge vår WC-zonmö IQ-hjälp. ' + '😄',
+                t.textBaseline = 'alphabetic',
+                t.fillStyle = '#f60',
+                t.fillRect(125, 1, 62, 20),
+                t.fillStyle = '#069',
+                t.font = '13pt bogus-font-xxx',
+                t.fillText(r[0], 2, 20),
+                t.fillStyle = 'rgba(102, 204, 0, 0.6123456789)',
+                t.font = '16pt Arial',
+                t.fillText(r[0], 4, 22),
+                e.toDataURL()
+        })(canvas, context)
+    })()
+    HEX(MMH3(dataURL))
+    """
+    return encode_field(13, 4, canvas_fingerprinting_hash, time)
+
+
+def index14(enumerate_devices_bits):
+    """
+    js/014.js
+
+    3 boolean bits [
+        audiooutput available,
+        audioinput available,
+        videoinput available
+    ]
+
+    let devices = await navigator.mediaDevices.enumerateDevices();
+    [
+        devices.some(d => d.kind === 'audiooutput'),
+        devices.some(d => d.kind === 'audioinput'),
+        devices.some(d => d.kind === 'videoinput'),
+    ];
+    """
+    hex = bits_to_hex(enumerate_devices_bits)
+    return encode_field(14, 7, hex)
+
+
+# 15, 16 = missing
+
+
+def index17(product_sub, time=None):
+    # window.navigator.productSub
+    # '20030107' or '20100101'
+    PRODUCT_SUBS = ["20030107", "20100101"]
+    index = index_of(PRODUCT_SUBS, product_sub)
+    return encode_optional_index(17, index, product_sub, time)
+
+
+def index18(canvas_fingerprinting_hash, time):
+    """
+    8 digit hex like "117f6743"
+    (function () {
+        let canvas = window.document.createElement('canvas');
+        let context = canvas.getContext('2d');
+        return (function (e, t) {
+            var r = [];
+            e.width = 400;
+            e.height = 200;
+            t.globalCompositeOperation = 'multiply';
+            let data = [
+                ["#f0f", 50, 50],
+                ["#0ff", 100, 50],
+                ["#f70", 75, 100]
+            ];
+            for (var i = 0, u = data; i < u.length; i++) {
+                r[0] = u[i];
+                r[1] = r[0][0];
+                r[0][1];
+                r[0][2];
+                t.fillStyle = r[1];
+                t.beginPath();
+                t.arc(75, 75, 75, 0, 6.283185307179586, true);
+                t.closePath();
+                t.fill();
+            }
+            return t.fillStyle = '#70f',
+                t.arc(75, 75, 75, 0, 6.283185307179586, true),
+                t.arc(75, 75, 75, 0, 6.283185307179586, true),
+                t.fill('evenodd'),
+                e.toDataURL();
+        })(canvas, context)
+    })()
+        HEX(MMH3(dataURL))
+    """
+    return encode_field(18, 4, canvas_fingerprinting_hash, time)
+
+
+def index19(WebGL_renderer, time):
+    # WK[tR]
+    # js/019.js
+    return encode_field(19, 4, WebGL_renderer, time)
+
+
+def index20(epoch_plus_two_months, time):
+    # WK[$d]
+    """
+    (function () {
+        let date = new Date;
+        date.setTime(0);
+        date.setMonth(date.getMonth() + 2);
+        return date.toLocaleString();
+    })()
+    """
+    return encode_field(20, 4, epoch_plus_two_months, time)
+
+
+def index21(detect_automation_bits):
+    # js/021.js
+    # [false * 8] -> 0800
+    hex = bits_to_hex(detect_automation_bits)
+    return encode_field(21, 7, hex)
+
+
+def index22(eval_length):
+    # (window.eval ? window.eval.toString().length : 0)
+    #   -> 33: Chrome, Opera, Edge
+    #   -> 37: Safari, Firefox
+    #   -> 39: IE
+    return encode_field(22, 5, eval_length)
+
+
+#  23 = missing
+
+
+def index24(maximum_call_stack_size):
+    # WK[ux]()
+    return encode_field(24, 5, maximum_call_stack_size)
+
+
+def index25(maximum_call_stack_size_exceeded_message, time = None):
+    # WK[ux]()
+    MESSAGES = ['Maximum call stack size exceeded', 'Maximum call stack size exceeded.', 'too much recursion']
+    index = index_of(MESSAGES, maximum_call_stack_size_exceeded_message)
+    return encode_optional_index(25, index, maximum_call_stack_size_exceeded_message, time)
+
+
+def index26(maximum_call_stack_size_exceeded_name, time = None):
+    # WK[ux]()
+    NAMES = ['InternalError', 'RangeError', 'Error']
+    index = index_of(NAMES, maximum_call_stack_size_exceeded_name)
+    return encode_optional_index(26, index, maximum_call_stack_size_exceeded_name, time)
+
+
+def index27(maximum_call_stack_size_exceeded_stack_length):
+    # WK[ux]()
+    return encode_field(27, 5, maximum_call_stack_size_exceeded_stack_length)
+
+
+def index28(touch_signature_hex):
+    # js/028.js
+    return encode_field(28, 7, touch_signature_hex)
+
+
+def index29(read_property_of_undefined_message, time = None):
+    """
+    (function () {
+        try {
+            return [][0]['b'],
+                ''
+        } catch (e) {
+            return e.message
+        }
+    })
+    """
+    MESSAGES = [
+        "Cannot read property 'b' of undefined",
+        "(void 0) is undefined",
+        "undefined is not an object (evaluating '(void 0).b')",
+        "Cannot read properties of undefined (reading 'b')"
+    ]
+    index = index_of(MESSAGES, read_property_of_undefined_message)
+    return encode_optional_index(29, index, read_property_of_undefined_message, time)
+
+
+def index30(navigator_properties):
+    # js/030.js
+    s = ''.join(sorted(navigator_properties))
+    mmh3_hashed = mmh3.hash(s)
+    value = n_digit_hex(len(navigator_properties), 2) + n_digit_hex(mmh3_hashed, 8, stop=True)
+    return encode_field(30, 7, value)
+
+
+def index31(can_play_type_values):
+    # js/031.js
+    result = int(
+        ''.join(format(v & 3, '02b') for v in can_play_type_values),
+        2
+    )
+    hex = n_digit_hex(result, 4, True)
+    return encode_field(31, 7, hex)
