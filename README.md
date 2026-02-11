@@ -1,2 +1,2 @@
 # Please send Pull Request
-## All right received
+## All right reserved
