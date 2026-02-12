@@ -1,9 +1,13 @@
-import math
-
 import mmh3
 
 from ..utils import n_digit_hex
-from .encode import arr_to_2dig_hex_string, encode_field, index_of, time_index_encrypt, encode_optional_index, bits_to_hex
+from .encode import (
+    bits_to_hex,
+    encode_field,
+    encode_optional_index,
+    encode_xxtea_frame,
+    index_of,
+)
 
 
 def pack_15_16_bits(value1, value2):
@@ -20,15 +24,15 @@ def pack_15_16_bits(value1, value2):
 def index0(platform, time=None):
     # window.navigator.platform
     PLATFORMS = [
-        'MacIntel',
-        'Win32',
-        'iPhone',
-        'Linux armv8l',
-        'iPad',
-        'Linux armv81',
-        'Linux aarch64',
-        'Linux x86_64',
-        'Linux armv7l',
+        "MacIntel",
+        "Win32",
+        "iPhone",
+        "Linux armv8l",
+        "iPad",
+        "Linux armv81",
+        "Linux aarch64",
+        "Linux x86_64",
+        "Linux armv7l",
     ]
     index = index_of(PLATFORMS, platform)
     return encode_optional_index(0, index, platform, time)
@@ -36,7 +40,7 @@ def index0(platform, time=None):
 
 def index1(vendor, time=None):
     # window.navigator.vendor
-    VENDORS = ['Google Inc.', 'Apple Computer, Inc.']
+    VENDORS = ["Google Inc.", "Apple Computer, Inc."]
     index = index_of(VENDORS, vendor)
     return encode_optional_index(1, index, vendor, time)
 
@@ -47,21 +51,21 @@ def index2(language, time=None):
     # window.navigator.browserLanguage ||
     # window.navigator.systemLanguage
     LANGUAGES = [
-        'US-US',
-        'ES-ES',
-        'FR-FR',
-        'BR-BR',
-        'GB-GB',
-        'DE-DE',
-        'RU-RU',
-        'us-us',
-        'gb-gb',
-        'CN-CN',
-        'ID-ID',
-        'US-US',
-        'IT-IT',
-        'MX-MX',
-        'PL-PL',
+        "US-US",
+        "ES-ES",
+        "FR-FR",
+        "BR-BR",
+        "GB-GB",
+        "DE-DE",
+        "RU-RU",
+        "us-us",
+        "gb-gb",
+        "CN-CN",
+        "ID-ID",
+        "US-US",
+        "IT-IT",
+        "MX-MX",
+        "PL-PL",
     ]
     index = index_of(LANGUAGES, language)
     return encode_optional_index(2, index, language, time)
@@ -89,7 +93,7 @@ def index5(color_depth=None, pixel_depth=None):
     # window.screen.colorDepth ||
     # window.screen.pixelDepth
     if not (color_depth or pixel_depth):
-        raise ValueError('color_depth or pixel_depth is required')
+        raise ValueError("color_depth or pixel_depth is required")
     return encode_field(5, 5, color_depth or pixel_depth)
 
 
@@ -130,7 +134,7 @@ def index8(timezone_offset, summertime_offset_diff):
 def index9(mime_types):
     # ['application/pdf', 'text/pdf']
     # Array.from(navigator.mimeTypes, m => m.type).sort().join('')
-    s = ''.join(sorted(mime_types))
+    s = "".join(sorted(mime_types))
     mmh3_hashed = mmh3.hash(s)
     value = n_digit_hex(len(mime_types), 2) + n_digit_hex(mmh3_hashed, 8, stop=True)
     return encode_field(9, 7, value)
@@ -140,7 +144,7 @@ def index10(plugins):
     # Array.from(navigator.plugins, p =>
     #     p.name + p.description + p.length + p.filename
     # )
-    s = ''.join(sorted(plugins))
+    s = "".join(sorted(plugins))
     mmh3_hashed = mmh3.hash(s)
     value = n_digit_hex(len(plugins), 2) + n_digit_hex(mmh3_hashed, 8, stop=True)
     return encode_field(10, 7, value)
@@ -169,21 +173,22 @@ def index11(bits):
 
 def index12(user_agent, time):
     # window.navigator.userAgent
-    xxtea_encrypted = time_index_encrypt(12, user_agent, time)
+    # xxtea_encrypted = time_index_encrypt(12, user_agent, time)
 
-    def calc_byte_length(n):
-        length = 0
-        while n != 0:
-            n >>= 8
-            length += 1
-        return length
+    # def calc_byte_length(n):
+    #     length = 0
+    #     while n != 0:
+    #         n >>= 8
+    #         length += 1
+    #     return length
 
-    byte_length = calc_byte_length(len(xxtea_encrypted))
-    hex = (
-        n_digit_hex(byte_length, 2)
-        + n_digit_hex(len(xxtea_encrypted), 2)
-        + arr_to_2dig_hex_string(xxtea_encrypted)
-    )
+    # byte_length = calc_byte_length(len(xxtea_encrypted))
+    # hex = (
+    #     n_digit_hex(byte_length, 2)
+    #     + n_digit_hex(len(xxtea_encrypted), 2)
+    #     + arr_to_2dig_hex_string(xxtea_encrypted)
+    # )
+    hex = encode_xxtea_frame(12, user_agent, time)
     return encode_field(12, 7, hex)
 
 
@@ -328,14 +333,20 @@ def index24(maximum_call_stack_size):
     return encode_field(24, 5, maximum_call_stack_size)
 
 
-def index25(maximum_call_stack_size_exceeded_message, time = None):
+def index25(maximum_call_stack_size_exceeded_message, time=None):
     # WK[ux]()
-    MESSAGES = ['Maximum call stack size exceeded', 'Maximum call stack size exceeded.', 'too much recursion']
+    MESSAGES = [
+        'Maximum call stack size exceeded',
+        'Maximum call stack size exceeded.',
+        'too much recursion',
+    ]
     index = index_of(MESSAGES, maximum_call_stack_size_exceeded_message)
-    return encode_optional_index(25, index, maximum_call_stack_size_exceeded_message, time)
+    return encode_optional_index(
+        25, index, maximum_call_stack_size_exceeded_message, time
+    )
 
 
-def index26(maximum_call_stack_size_exceeded_name, time = None):
+def index26(maximum_call_stack_size_exceeded_name, time=None):
     # WK[ux]()
     NAMES = ['InternalError', 'RangeError', 'Error']
     index = index_of(NAMES, maximum_call_stack_size_exceeded_name)
@@ -352,7 +363,7 @@ def index28(touch_signature_hex):
     return encode_field(28, 7, touch_signature_hex)
 
 
-def index29(read_property_of_undefined_message, time = None):
+def index29(read_property_of_undefined_message, time=None):
     """
     (function () {
         try {
@@ -367,7 +378,7 @@ def index29(read_property_of_undefined_message, time = None):
         "Cannot read property 'b' of undefined",
         "(void 0) is undefined",
         "undefined is not an object (evaluating '(void 0).b')",
-        "Cannot read properties of undefined (reading 'b')"
+        "Cannot read properties of undefined (reading 'b')",
     ]
     index = index_of(MESSAGES, read_property_of_undefined_message)
     return encode_optional_index(29, index, read_property_of_undefined_message, time)
@@ -377,15 +388,14 @@ def index30(navigator_properties):
     # js/030.js
     s = ''.join(sorted(navigator_properties))
     mmh3_hashed = mmh3.hash(s)
-    value = n_digit_hex(len(navigator_properties), 2) + n_digit_hex(mmh3_hashed, 8, stop=True)
+    value = n_digit_hex(len(navigator_properties), 2) + n_digit_hex(
+        mmh3_hashed, 8, stop=True
+    )
     return encode_field(30, 7, value)
 
 
 def index31(can_play_type_values):
     # js/031.js
-    result = int(
-        ''.join(format(v & 3, '02b') for v in can_play_type_values),
-        2
-    )
+    result = int(''.join(format(v & 3, '02b') for v in can_play_type_values), 2)
     hex = n_digit_hex(result, 4, True)
     return encode_field(31, 7, hex)

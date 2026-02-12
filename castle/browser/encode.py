@@ -22,6 +22,24 @@ def time_index_encrypt(index, input, time):
     )
 
 
+def encode_xxtea_frame(index, data, time):
+    xxtea_encrypted = time_index_encrypt(index, data, time)
+
+    def calc_byte_length(n):
+        length = 0
+        while n != 0:
+            n >>= 8
+            length += 1
+        return length
+
+    byte_length = calc_byte_length(len(xxtea_encrypted))
+    return (
+        n_digit_hex(byte_length, 2)
+        + n_digit_hex(len(xxtea_encrypted), 2)
+        + arr_to_2dig_hex_string(xxtea_encrypted)
+    )
+
+
 def prepare_value(index, case):
     return n_digit_hex((index & 31) << 3 | case & 7, 2)
 

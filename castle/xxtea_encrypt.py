@@ -1,37 +1,49 @@
-import struct
+import math
 
 
-def xxtea_encrypt(data, key):
-    pad_len = (4 - len(data) % 4) % 4
-    data_bytes = bytes(data) + b'\x00' * pad_len
-    v = list(struct.unpack(f'<{len(data_bytes)//4}I', data_bytes))
+def xxtea_encrypt(e, t):
+    def to_uint32_array(data):
+        res = []
+        for r in range(math.ceil(len(data) / 4)):
+            val = (
+                (data[r * 4] if r * 4 < len(data) else 0)
+                | ((data[r * 4 + 1] if r * 4 + 1 < len(data) else 0) << 8)
+                | ((data[r * 4 + 2] if r * 4 + 2 < len(data) else 0) << 16)
+                | ((data[r * 4 + 3] if r * 4 + 3 < len(data) else 0) << 24)
+            )
+            res.append(val & 0xFFFFFFFF)
+        return res
 
+    v = to_uint32_array(e)
     n = len(v) - 1
-    if n < 0: return v
 
-    z = v[n]
+    if n < 1:
+        return v
+
     sum_val = 0
-    DELTA = 0x9E3779B9
+    z = v[n]
+    y = v[0]
+    DELTA = 2654435769
     mask = 0xFFFFFFFF
 
     rounds = 6 + 52 // (n + 1)
     for _ in range(rounds):
         sum_val = (sum_val + DELTA) & mask
-        e = (sum_val >> 2) & 3
-
-        for p in range(n + 1):
-            y = v[p + 1] if p < n else v[0]
-
-            mx = (((z >> 5 ^ y << 2) + (y >> 3 ^ z << 4)) ^
-                  ((sum_val ^ y) + (key[(p & 3) ^ e] ^ z)))
-
+        e_val = (sum_val >> 2) & 3
+        p = 0
+        while p < n:
+            y = v[p + 1]
+            mx = ((z >> 5 ^ y << 2) + (y >> 3 ^ z << 4)) ^ (
+                (sum_val ^ y) + (t[p & 3 ^ e_val] ^ z)
+            )
             v[p] = (v[p] + mx) & mask
             z = v[p]
+            p += 1
+        y = v[0]
+        mx = ((z >> 5 ^ y << 2) + (y >> 3 ^ z << 4)) ^ (
+            (sum_val ^ y) + (t[p & 3 ^ e_val] ^ z)
+        )
+        v[n] = (v[n] + mx) & mask
+        z = v[n]
 
     return v
-
-# data_input = [1, 2, 3, 4, 5, 6, 7]
-# key_input = [1164413191, 3891440048, 218959117, 2746598870]
-
-# print(xxtea_encrypt(data_input, key_input))
-# [422468372, 946636156]
