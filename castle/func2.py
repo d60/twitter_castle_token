@@ -52,6 +52,8 @@ def func2(value, i, cuid):
         + xor_with_rotated_key(xor1, cuid, 8, cuid[9])
     )
 
+# ''.join(n_digit_hex(i, 2) for i in 'AvRa79bHyJSYSQHnRpcVtzyxetSvFerx'.encode())
+
 
 # (
 #     encode_lists(

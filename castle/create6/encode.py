@@ -1,3 +1,5 @@
+import math
+
 from ..utils import arr_to_2dig_hex_string, n_digit_hex
 from ..xxtea_encrypt import xxtea_encrypt
 
@@ -88,3 +90,34 @@ def index_of(arr, value):
     if value in arr:
         return arr.index(value)
     return -1
+
+
+def encode_optional_index(index, input1, input2, time):
+    case = 3
+    input = input1
+    if input1 == -1:
+        case = 4
+        input = input2
+    return encode_field(index, case, input, time)
+
+
+def bits_to_hex(bits):
+    # WK[iE]
+    length_prefix = f'{len(bits) & 255:02x}'
+    normalized_bits = list(map(bool, bits))
+
+    body_hex = ''
+    chunk_size = 24
+    for i in range(0, len(normalized_bits), chunk_size):
+        chunk = normalized_bits[i : i + chunk_size]
+
+        val = 0
+        for bit in chunk:
+            val = (val << 1) | bit
+        chunk_len = len(chunk)
+        if chunk_len == chunk_size:
+            num_bytes = 3
+        else:
+            num_bytes = math.ceil(chunk_len / 8)
+        body_hex += n_digit_hex(val, num_bytes * 2)
+    return length_prefix + body_hex
