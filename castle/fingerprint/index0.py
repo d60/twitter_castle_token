@@ -36,10 +36,12 @@ def index1(vendor, time=None):
 
 
 def index2(language, time=None):
-    # window.navigator.language ||
-    # window.navigator.userLanguage ||
-    # window.navigator.browserLanguage ||
-    # window.navigator.systemLanguage
+    """
+    window.navigator.language ||
+    window.navigator.userLanguage ||
+    window.navigator.browserLanguage ||
+    window.navigator.systemLanguage
+    """
     LANGUAGES = [
         'US-US',
         'ES-ES',
@@ -80,8 +82,10 @@ def index4(width, avail_width, height, avail_height):
 
 
 def index5(color_depth=None, pixel_depth=None):
-    # window.screen.colorDepth ||
-    # window.screen.pixelDepth
+    """
+    window.screen.colorDepth ||
+    window.screen.pixelDepth
+    """
     if not (color_depth or pixel_depth):
         raise ValueError('color_depth or pixel_depth is required')
     return encode_field(5, 5, color_depth or pixel_depth)
@@ -93,8 +97,10 @@ def index6(hardware_concurrency):
 
 
 def index7(device_pixel_ratio):
-    # window.devicePixelRatio ||
-    # window.screen.systemXDPI / window.screen.logicalXDPI
+    """
+    window.devicePixelRatio ||
+    window.screen.systemXDPI / window.screen.logicalXDPI
+    """
     if device_pixel_ratio > 25.5:
         device_pixel_ratio = round(device_pixel_ratio)
         return encode_field(7, 5, round(device_pixel_ratio))
@@ -125,7 +131,7 @@ def index8(timezone_offset, summertime_offset_diff):
 
 def index9(mime_types):
     # ['application/pdf', 'text/pdf']
-    # Array.from(navigator.mimeTypes, m => m.type).sort().join('')
+    # Array.from(navigator.mimeTypes, m => m.type)
     s = "".join(sorted(mime_types))
     mmh3_hashed = mmh3.hash(s)
     value = n_digit_hex(len(mime_types), 2) + n_digit_hex(mmh3_hashed, 8, stop=True)
@@ -188,7 +194,6 @@ def index12(user_agent, time):
 
 def index13(canvas_fingerprinting_hash, time):
     """
-    8 digit hex like "fb98c853"
     dataURL = (function () {
         let canvas = window.document.createElement('canvas');
         let context = canvas.getContext('2d');
@@ -248,7 +253,6 @@ def index17(product_sub, time=None):
 
 def index18(canvas_fingerprinting_hash, time):
     """
-    8 digit hex like "117f6743"
     (function () {
         let canvas = window.document.createElement('canvas');
         let context = canvas.getContext('2d');

@@ -46,7 +46,7 @@ def index10(castle_runtime_flags):
         "wt": {"Nt": "__cuid", "Ht": 34560000},
         "Mt": true,
         "xt": "pk_AvRa79bHyJSYSQHnRpcVtzyxetSvFerx",
-    } WK[ww]()
+    }
     index0 -> castle['Mt']
     index1 -> castle['ht']
     index2 -> Boolean(window.localStorage)

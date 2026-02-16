@@ -1,0 +1,1 @@
+window.screen.width > 800 && (window.screen.width == window.screen.availWidth) && (window.screen.height == window.screen.availHeight)

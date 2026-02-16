@@ -2,6 +2,5 @@
 /*.json
 /*.js
 __pycache__
-/js
 /*.html
 !/setup.py
