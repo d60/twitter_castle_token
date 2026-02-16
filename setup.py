@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='twitter_castle_token',
@@ -7,4 +7,5 @@ setup(
         'mmh'
     ],
     python_requires='>=3.10',
+    packages=find_packages(include=['castle'])
 )
