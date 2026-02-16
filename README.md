@@ -1,5 +1,5 @@
 use example: https://github.com/d60/twitter_login
-
+Please use the fingerprint generated in your environment if the token doesn't work.
 
 ## Install via pip
 ```bash
