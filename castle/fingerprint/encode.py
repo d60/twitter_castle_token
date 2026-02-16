@@ -139,3 +139,14 @@ def bits_to_hex(bits):
             num_bytes = math.ceil(chunk_len / 8)
         body_hex += n_digit_hex(val, num_bytes * 2)
     return length_prefix + body_hex
+
+
+def pack_15_16_bits(value1, value2):
+    # WK[aV]
+    v1_15bits = value1 & 32767
+    v2_16bits = value2 & 65535
+
+    if v1_15bits == v2_16bits:
+        return n_digit_hex(v1_15bits | 32768, 4)
+    else:
+        return n_digit_hex(v1_15bits, 4) + n_digit_hex(v2_16bits, 4)

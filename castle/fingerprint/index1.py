@@ -25,7 +25,6 @@ def index2(languages, time=None):
     # window.navigator.languages
     LANGUAGES = ['US-US,US', 'US-US', 'BR-BR,BR,US-US,US', 'ES-ES,ES', 'CN-CN,CN']
     languages_str = ','.join(languages)
-    print(languages_str)
     index = index_of(LANGUAGES, languages_str)
     return encode_optional_index(2, index, languages_str, time)
 
@@ -165,15 +164,15 @@ def index26(is_ua_high_entropy_empty):
     case = 1
     if is_ua_high_entropy_empty:
         case = 2
-    return encode_field(26, case, "")
+    return encode_field(26, case, '')
 
 
-def index27(ua_high_entropy_fields):
+def index27(ua_high_entropy_flags):
     """
     js/127.js
     [is64bit, is32bit, wow64, mobile]
     """
-    hex = bits_to_hex(ua_high_entropy_fields)
+    hex = bits_to_hex(ua_high_entropy_flags)
     return encode_field(27, 7, hex)
 
 

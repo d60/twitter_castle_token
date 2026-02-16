@@ -7,32 +7,22 @@ from .encode import (
     encode_optional_index,
     encode_xxtea_frame,
     index_of,
+    pack_15_16_bits
 )
-
-
-def pack_15_16_bits(value1, value2):
-    # WK[aV]
-    v1_15bits = value1 & 32767
-    v2_16bits = value2 & 65535
-
-    if v1_15bits == v2_16bits:
-        return n_digit_hex(v1_15bits | 32768, 4)
-    else:
-        return n_digit_hex(v1_15bits, 4) + n_digit_hex(v2_16bits, 4)
 
 
 def index0(platform, time=None):
     # window.navigator.platform
     PLATFORMS = [
-        "MacIntel",
-        "Win32",
-        "iPhone",
-        "Linux armv8l",
-        "iPad",
-        "Linux armv81",
-        "Linux aarch64",
-        "Linux x86_64",
-        "Linux armv7l",
+        'MacIntel',
+        'Win32',
+        'iPhone',
+        'Linux armv8l',
+        'iPad',
+        'Linux armv81',
+        'Linux aarch64',
+        'Linux x86_64',
+        'Linux armv7l',
     ]
     index = index_of(PLATFORMS, platform)
     return encode_optional_index(0, index, platform, time)
@@ -40,7 +30,7 @@ def index0(platform, time=None):
 
 def index1(vendor, time=None):
     # window.navigator.vendor
-    VENDORS = ["Google Inc.", "Apple Computer, Inc."]
+    VENDORS = ['Google Inc.', 'Apple Computer, Inc.']
     index = index_of(VENDORS, vendor)
     return encode_optional_index(1, index, vendor, time)
 
@@ -51,21 +41,21 @@ def index2(language, time=None):
     # window.navigator.browserLanguage ||
     # window.navigator.systemLanguage
     LANGUAGES = [
-        "US-US",
-        "ES-ES",
-        "FR-FR",
-        "BR-BR",
-        "GB-GB",
-        "DE-DE",
-        "RU-RU",
-        "us-us",
-        "gb-gb",
-        "CN-CN",
-        "ID-ID",
-        "US-US",
-        "IT-IT",
-        "MX-MX",
-        "PL-PL",
+        'US-US',
+        'ES-ES',
+        'FR-FR',
+        'BR-BR',
+        'GB-GB',
+        'DE-DE',
+        'RU-RU',
+        'us-us',
+        'gb-gb',
+        'CN-CN',
+        'ID-ID',
+        'US-US',
+        'IT-IT',
+        'MX-MX',
+        'PL-PL',
     ]
     index = index_of(LANGUAGES, language)
     return encode_optional_index(2, index, language, time)
@@ -93,7 +83,7 @@ def index5(color_depth=None, pixel_depth=None):
     # window.screen.colorDepth ||
     # window.screen.pixelDepth
     if not (color_depth or pixel_depth):
-        raise ValueError("color_depth or pixel_depth is required")
+        raise ValueError('color_depth or pixel_depth is required')
     return encode_field(5, 5, color_depth or pixel_depth)
 
 
@@ -113,18 +103,20 @@ def index7(device_pixel_ratio):
 
 
 def index8(timezone_offset, summertime_offset_diff):
-    # v1: (new Date).getTimezoneOffset()
-    # v2 = (function () {
-    #     var e = [];
-    #     return e[1] = new Date,
-    #         e[1]['setDate'](1),
-    #         e[1]['setMonth'](0),
-    #         e[2] = e[1]['getTimezoneOffset'](),
-    #         e[1]['setMonth'](6),
-    #         e[0] = e[1]['getTimezoneOffset'](),
-    #         Math.abs(e[2] - e[0])
-    # })()
-    # n_dig_hex(v1 // 15, 2) + n_dig_hex(v2 // 15, 2)
+    """
+    v1: (new Date).getTimezoneOffset()
+    v2 = (function () {
+        var e = [];
+        return e[1] = new Date,
+            e[1]['setDate'](1),
+            e[1]['setMonth'](0),
+            e[2] = e[1]['getTimezoneOffset'](),
+            e[1]['setMonth'](6),
+            e[0] = e[1]['getTimezoneOffset'](),
+            Math.abs(e[2] - e[0])
+    })()
+    n_dig_hex(v1 // 15, 2) + n_dig_hex(v2 // 15, 2)
+    """
     value = n_digit_hex(timezone_offset // 15, 2) + n_digit_hex(
         summertime_offset_diff // 15, 2
     )
@@ -141,10 +133,12 @@ def index9(mime_types):
 
 
 def index10(plugins):
-    # Array.from(navigator.plugins, p =>
-    #     p.name + p.description + p.length + p.filename
-    # )
-    s = "".join(sorted(plugins))
+    """
+    Array.from(navigator.plugins, p =>
+        p.name + p.description + p.length + p.filename
+    )
+    """
+    s = ''.join(sorted(plugins))
     mmh3_hashed = mmh3.hash(s)
     value = n_digit_hex(len(plugins), 2) + n_digit_hex(mmh3_hashed, 8, stop=True)
     return encode_field(10, 7, value)
@@ -247,7 +241,7 @@ def index14(enumerate_devices_bits):
 def index17(product_sub, time=None):
     # window.navigator.productSub
     # '20030107' or '20100101'
-    PRODUCT_SUBS = ["20030107", "20100101"]
+    PRODUCT_SUBS = ['20030107', '20100101']
     index = index_of(PRODUCT_SUBS, product_sub)
     return encode_optional_index(17, index, product_sub, time)
 
@@ -294,6 +288,7 @@ def index18(canvas_fingerprinting_hash, time):
 def index19(WebGL_renderer, time):
     # WK[tR]
     # js/019.js
+    # 'ANGLE (Intel, Intel(R) Arc(TM) Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)'
     return encode_field(19, 4, WebGL_renderer, time)
 
 
@@ -329,12 +324,13 @@ def index22(eval_length):
 
 
 def index24(maximum_call_stack_size):
-    # WK[ux]()
+    # WK[ux]() 11171
     return encode_field(24, 5, maximum_call_stack_size)
 
 
 def index25(maximum_call_stack_size_exceeded_message, time=None):
     # WK[ux]()
+    # 'Maximum call stack size exceeded'
     MESSAGES = [
         'Maximum call stack size exceeded',
         'Maximum call stack size exceeded.',
@@ -348,13 +344,14 @@ def index25(maximum_call_stack_size_exceeded_message, time=None):
 
 def index26(maximum_call_stack_size_exceeded_name, time=None):
     # WK[ux]()
+    # 'RangeError'
     NAMES = ['InternalError', 'RangeError', 'Error']
     index = index_of(NAMES, maximum_call_stack_size_exceeded_name)
     return encode_optional_index(26, index, maximum_call_stack_size_exceeded_name, time)
 
 
 def index27(maximum_call_stack_size_exceeded_stack_length):
-    # WK[ux]()
+    # WK[ux]() 1034
     return encode_field(27, 5, maximum_call_stack_size_exceeded_stack_length)
 
 
